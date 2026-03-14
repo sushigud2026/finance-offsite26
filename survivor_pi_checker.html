@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survivor · Memory Match</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire: #ff6b1a;
+    --gold: #d4a843;
+    --sand: #e8d5a3;
+    --dark: #1a1008;
+    --torch: #ff9500;
+    --wood: #8b5e3c;
+    --leaf: #2d5a27;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 10% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(255,107,26,0.1) 0%, transparent 50%);
+  }
+
+  .torch { position: fixed; top: 0; width: 60px; z-index: 10; }
+  .torch-left { left: 20px; }
+  .torch-right { right: 20px; }
+  .flame {
+    width: 24px; height: 60px; margin: 0 auto;
+    background: linear-gradient(to top, var(--fire), var(--torch), #ffe066, transparent);
+    border-radius: 50% 50% 20% 20%;
+    animation: flicker 0.8s ease-in-out infinite alternate;
+    filter: blur(1px);
+    box-shadow: 0 0 20px var(--fire), 0 0 40px rgba(255,107,26,0.4);
+  }
+  @keyframes flicker {
+    0% { transform: scaleX(1) scaleY(1) rotate(-2deg); opacity: 0.9; }
+    100% { transform: scaleX(0.85) scaleY(1.1) rotate(2deg); opacity: 1; }
+  }
+  .torch-pole { width: 8px; height: 120px; background: linear-gradient(to bottom, var(--wood), #5a3a1a); margin: 0 auto; border-radius: 2px; }
+
+  .header {
+    text-align: center;
+    padding: 40px 100px 20px;
+  }
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212,168,67,0.5), 2px 2px 0 rgba(0,0,0,0.8);
+    letter-spacing: 4px;
+  }
+  .header .subtitle {
+    font-size: 1.1rem;
+    color: var(--sand);
+    opacity: 0.8;
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .divider {
+    width: 300px; height: 2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 16px auto;
+  }
+
+  .panel {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .card {
+    background: linear-gradient(135deg, rgba(139,94,60,0.25), rgba(26,16,8,0.8));
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 12px;
+    padding: 28px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,67,0.15);
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.82rem;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  select, input[type="text"] {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(212,168,67,0.4);
+    border-radius: 6px;
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:focus, input:focus { border-color: var(--gold); box-shadow: 0 0 12px rgba(212,168,67,0.2); }
+  select option { background: #2a1a0a; }
+
+  textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(212,168,67,0.4);
+    border-radius: 6px;
+    color: var(--sand);
+    font-family: 'Courier New', monospace;
+    font-size: 1.15rem;
+    padding: 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    letter-spacing: 2px;
+    transition: border-color 0.2s;
+    margin-bottom: 6px;
+  }
+  textarea:focus { border-color: var(--gold); box-shadow: 0 0 12px rgba(212,168,67,0.2); }
+
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-fire {
+    background: linear-gradient(135deg, #cc4400, var(--fire), var(--torch));
+    color: white;
+    box-shadow: 0 4px 20px rgba(255,107,26,0.4);
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn-fire:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,107,26,0.6); }
+  .btn-gold {
+    background: linear-gradient(135deg, #a07820, var(--gold), #e8c060);
+    color: var(--dark);
+    box-shadow: 0 4px 20px rgba(212,168,67,0.3);
+  }
+  .btn-gold:hover { transform: translateY(-2px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--sand);
+    border: 1px solid rgba(212,168,67,0.4);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Tab row */
+  .tab-row { display: flex; gap: 0; margin-bottom: 24px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(212,168,67,0.25); }
+  .tab-btn {
+    flex: 1; padding: 10px; text-align: center;
+    font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 2px;
+    cursor: pointer; background: rgba(0,0,0,0.3); color: rgba(232,213,163,0.6);
+    border: none; transition: all 0.2s;
+  }
+  .tab-btn.active { background: rgba(212,168,67,0.15); color: var(--gold); }
+  .tab-btn:hover:not(.active) { background: rgba(212,168,67,0.08); }
+
+  /* Pi display */
+  .pi-hint {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: rgba(232,213,163,0.45);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    word-break: break-all;
+    line-height: 1.8;
+  }
+  .pi-hint span { color: var(--gold); font-weight: bold; }
+
+  /* Result display */
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .result-stat {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .result-stat .val {
+    font-family: 'Cinzel', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .result-stat .val.green { color: #7dd87d; }
+  .result-stat .val.red { color: #ff5555; }
+  .result-stat .lbl {
+    font-size: 0.75rem;
+    color: rgba(232,213,163,0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Digit breakdown */
+  .digit-display {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    line-height: 2.2;
+    word-break: break-all;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid rgba(212,168,67,0.15);
+    margin: 16px 0;
+  }
+  .d-correct { color: #7dd87d; }
+  .d-wrong { color: #ff4444; background: rgba(255,68,68,0.2); border-radius: 3px; padding: 0 2px; }
+  .d-missing { color: rgba(232,213,163,0.25); }
+
+  /* Scoreboard */
+  .score-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(212,168,67,0.1);
+  }
+  .score-rank { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold); width: 32px; text-align: center; }
+  .score-tribe { flex: 1; font-size: 1.05rem; }
+  .score-digits { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--fire); font-weight: 700; }
+  .score-row.rank-1 { background: rgba(212,168,67,0.15); border-color: var(--gold); }
+  .score-row.rank-2 { background: rgba(180,180,180,0.08); border-color: rgba(180,180,180,0.3); }
+  .score-row.rank-3 { background: rgba(139,94,60,0.2); border-color: var(--wood); }
+
+  .scoreboard-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(212,168,67,0.2);
+  }
+
+  .hidden { display: none !important; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+
+  .info-banner {
+    background: rgba(212,168,67,0.08);
+    border: 1px solid rgba(212,168,67,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    color: var(--sand);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+
+  .timer-display {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--fire);
+    text-align: center;
+    text-shadow: 0 0 20px rgba(255,107,26,0.4);
+    margin: 10px 0;
+  }
+  .timer-display.urgent { color: #ff2200; animation: pulse 0.5s ease-in-out infinite alternate; }
+  @keyframes pulse { 0% { text-shadow: 0 0 20px rgba(255,34,0,0.4); } 100% { text-shadow: 0 0 40px rgba(255,34,0,0.9); } }
+
+  .timer-bar-wrap {
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px; height: 8px;
+    overflow: hidden; margin-bottom: 20px;
+    border: 1px solid rgba(212,168,67,0.2);
+  }
+  .timer-bar {
+    height: 100%;
+    background: linear-gradient(to right, var(--leaf), var(--gold), var(--fire));
+    transition: width 1s linear;
+    border-radius: 4px;
+  }
+
+  .countdown-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(10,5,0,0.92);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  .countdown-num {
+    font-family: 'Cinzel', serif;
+    font-size: 12rem; font-weight: 900;
+    color: var(--fire);
+    text-shadow: 0 0 60px var(--fire), 0 0 120px rgba(255,107,26,0.4);
+    animation: popIn 0.5s ease-out;
+    line-height: 1;
+  }
+  .countdown-text { font-family: 'Cinzel', serif; font-size: 1.4rem; color: var(--gold); letter-spacing: 6px; margin-top: 16px; }
+  @keyframes popIn { 0% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .phase-badge {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(255,107,26,0.2);
+    border: 1px solid rgba(255,107,26,0.4);
+    color: var(--torch);
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="torch torch-left"><div class="flame"></div><div class="torch-pole"></div></div>
+<div class="torch torch-right"><div class="flame"></div><div class="torch-pole"></div></div>
+
+<div class="header">
+  <h1>🧠 MEMORY MATCH 🧠</h1>
+  <p class="subtitle">Challenge 2 · Survivor Offsite</p>
+  <div class="divider"></div>
+</div>
+
+<div class="panel">
+
+  <!-- TABS -->
+  <div class="card">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('memorize')">🌴 Submit Digits</button>
+      <button class="tab-btn" onclick="switchTab('scoreboard')">🏆 Scoreboard</button>
+    </div>
+
+    <!-- ═══ SUBMIT TAB ═══ -->
+    <div id="tab-memorize">
+
+      <div id="memorize-setup">
+        <div class="info-banner">
+          🏝️ When time is called, enter the digits of π your tribe memorized and hit submit. Score stops at the first wrong digit.
+        </div>
+        <div class="row-2">
+          <div>
+            <label>Your Tribe</label>
+            <select id="tribeSelect">
+              <option value="">— Select tribe —</option>
+              <option>🥑 Avocado</option><option>🍌 Banana</option><option>🥕 Carrot</option>
+              <option>🌴 Dates</option><option>🫛 Edamame</option><option>🫚 Figs</option>
+              <option>🍇 Grape</option><option>🍈 Honeydew</option><option>🥬 Iceberg</option><option>🍐 Jackfruit</option>
+            </select>
+          </div>
+          <div>
+            <label>Tribe Rep Name</label>
+            <input type="text" id="repName" placeholder="e.g. Sarah">
+          </div>
+        </div>
+        <label>Your Digits of π</label>
+        <textarea id="piInput" placeholder="Enter your digits here..." oninput="cleanInput(this)"></textarea>
+        <div style="font-size:0.85rem;opacity:0.55;margin-bottom:16px">Numbers and decimal point only. Spaces are ignored.</div>
+        <button class="btn btn-fire" onclick="submitPi()">🌴 SUBMIT FOR YOUR TRIBE</button>
+      </div>
+
+      <!-- Submitted confirmation -->
+      <div id="memorize-done" class="hidden">
+        <div style="text-align:center;padding:20px 0">
+          <div style="font-size:3rem;margin-bottom:12px">✅</div>
+          <div style="font-family:'Cinzel',serif;font-size:1.4rem;color:var(--gold);margin-bottom:8px">Submission Received!</div>
+          <div style="opacity:0.7" id="submittedSummary"></div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="switchTab('scoreboard')">🏆 View Scoreboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SCOREBOARD TAB ═══ -->
+    <div id="tab-scoreboard" class="hidden">
+      <div id="scoreboardContent">
+        <p style="text-align:center;opacity:0.5;font-style:italic;padding:20px">No scores yet!</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PI_STR = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196";
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyFjuHPjzLQS46R__tn3mqmiwyjCv7XvCA-J5Th6v0dzu0URso07xfOdbAmB7qf0JL1/exec';
+
+async function postScore(payload) {
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.error('Score post failed', e); }
+}
+
+async function fetchScores() {
+  try {
+    const res = await fetch(SHEET_URL + '?sheet=pi');
+    const data = await res.json();
+    return data;
+  } catch(e) { console.error('Score fetch failed', e); return []; }
+}
+
+let tribe = '', rep = '';
+
+function cleanInput(el) {
+  let val = el.value.replace(/[^0-9.]/g, '');
+  const parts = val.split('.');
+  if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+  el.value = val;
+}
+
+function submitPi() {
+  tribe = document.getElementById('tribeSelect').value;
+  rep = document.getElementById('repName').value.trim();
+  const raw = document.getElementById('piInput').value.trim();
+  if (!tribe) { alert('Please select your tribe!'); return; }
+  if (!rep) { alert('Please enter a name!'); return; }
+  if (!raw) { alert('Please enter your digits first!'); return; }
+
+  const result = checkPi(raw);
+  postScore({ sheet: 'pi', tribe, rep, correct: result.correct, submitted: raw, time: new Date().toLocaleTimeString() });
+
+  document.getElementById('memorize-setup').classList.add('hidden');
+  document.getElementById('memorize-done').classList.remove('hidden');
+  document.getElementById('submittedSummary').textContent =
+    `${tribe} — ${result.correct} correct digit${result.correct !== 1 ? 's' : ''} of π recorded.`;
+}
+
+// ── Check pi digits ──
+function checkPi(input) {
+  // Normalize: remove spaces, keep digits and decimal
+  const clean = input.replace(/\s/g, '');
+  const pi = PI_STR;
+  let correct = 0;
+  let i = 0, j = 0;
+
+  while (i < clean.length && j < pi.length) {
+    if (clean[i] === pi[j]) { correct++; i++; j++; }
+    else break;
+  }
+
+  // correct count excludes "3." prefix (we count only meaningful digits after 3.)
+  // Actually count total matching chars including "3."
+  return { correct: Math.max(0, correct), input: clean, firstError: j };
+}
+
+// ── Host check ──
+function hostCheck() {
+  const t = document.getElementById('hostTribeSelect').value;
+  let raw = document.getElementById('hostDigits').value.trim();
+
+  // If tribe selected and has a submission, use that
+  if (t && scores[t] && !raw) raw = scores[t].submitted;
+  if (!raw) { alert('Enter digits or select a tribe with a submission.'); return; }
+
+  const result = checkPi(raw);
+  const target = t || 'Manual Check';
+
+  if (t) {
+    scores[t] = { ...(scores[t] || {}), rep: scores[t]?.rep || 'Host Entry', correct: result.correct, submitted: raw, time: new Date().toLocaleTimeString() };
+    saveScores();
+  }
+
+  renderHostResult(result, raw, target);
+}
+
+function renderHostResult(result, raw, tribe) {
+  const el = document.getElementById('hostResult');
+  el.classList.remove('hidden');
+
+  const pi = PI_STR;
+  let digitHtml = '';
+  const clean = raw.replace(/\s/g, '');
+
+  for (let i = 0; i < Math.max(clean.length, result.firstError + 5); i++) {
+    const ch = clean[i];
+    const expected = pi[i];
+    if (!ch) {
+      if (i < pi.length) digitHtml += `<span class="d-missing">${expected}</span>`;
+    } else if (i < result.firstError) {
+      digitHtml += `<span class="d-correct">${ch}</span>`;
+    } else if (i === result.firstError) {
+      digitHtml += `<span class="d-wrong">${ch}</span>`;
+      break;
+    }
+  }
+
+  el.innerHTML = `
+    <div style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:12px;font-size:1rem">${tribe}</div>
+    <div class="result-grid">
+      <div class="result-stat"><div class="val green">${result.correct}</div><div class="lbl">Correct Digits</div></div>
+      <div class="result-stat"><div class="val">${clean.length}</div><div class="lbl">Digits Submitted</div></div>
+      <div class="result-stat"><div class="val ${result.firstError < clean.length ? 'red' : 'green'}">${result.firstError < clean.length ? '✗' : '✓'}</div><div class="lbl">First Error at #${result.firstError + 1}</div></div>
+    </div>
+    <label>Digit Breakdown</label>
+    <div class="digit-display">${digitHtml}${result.firstError < clean.length ? `<span class="d-wrong"> ← first error</span>` : '<span style="color:#7dd87d"> ✓ all correct!</span>'}</div>
+    <div style="font-size:0.85rem;opacity:0.55">🟢 Green = correct &nbsp;|&nbsp; 🔴 Red = first wrong digit &nbsp;|&nbsp; Score stops at first error</div>
+  `;
+}
+
+// ── Scoreboard ──
+async function renderScoreboard() {
+  const el = document.getElementById('scoreboardContent');
+  el.innerHTML = '<p style="text-align:center;opacity:0.5;font-style:italic;padding:20px">Loading scores...</p>';
+
+  const rows = await fetchScores();
+
+  if (!rows.length) {
+    el.innerHTML = '<p style="text-align:center;opacity:0.5;font-style:italic;padding:20px">No scores yet!</p>';
+    return;
+  }
+
+  // Keep only latest submission per tribe
+  const tribeMap = {};
+  rows.forEach(r => { tribeMap[r.tribe] = r; });
+  const entries = Object.values(tribeMap).sort((a, b) => +b.correct - +a.correct);
+
+  const medals = ['🥇','🥈','🥉'];
+  let html = `<div class="scoreboard-title">🔥 TRIBE RANKINGS — DIGITS OF π 🔥</div>`;
+  entries.forEach((r, i) => {
+    html += `
+      <div class="score-row ${i < 3 ? 'rank-'+(i+1) : ''}">
+        <span class="score-rank">${medals[i] || (i+1)+'.'}</span>
+        <span class="score-tribe">
+          ${r.tribe}
+          <br><small style="opacity:0.5;font-size:0.8rem">Submitted by ${r.rep || '?'} · ${r.time || ''}</small>
+        </span>
+        <span class="score-digits">${r.correct} digits</span>
+      </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ── Tab switching ──
+function switchTab(tab) {
+  ['memorize','scoreboard'].forEach((t, i) => {
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'scoreboard') renderScoreboard();
+}
+</script>
+</body>
+</html>

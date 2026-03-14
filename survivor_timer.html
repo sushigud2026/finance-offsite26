@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survivor · Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire: #ff6b1a;
+    --gold: #d4a843;
+    --sand: #e8d5a3;
+    --dark: #1a1008;
+    --torch: #ff9500;
+    --wood: #8b5e3c;
+    --leaf: #2d5a27;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-image:
+      radial-gradient(ellipse at 10% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(255,107,26,0.1) 0%, transparent 50%);
+  }
+
+  /* Torch flames */
+  .torch { position: fixed; top: 0; width: 60px; z-index: 10; }
+  .torch-left { left: 20px; }
+  .torch-right { right: 20px; }
+  .flame {
+    width: 24px; height: 60px; margin: 0 auto;
+    background: linear-gradient(to top, var(--fire), var(--torch), #ffe066, transparent);
+    border-radius: 50% 50% 20% 20%;
+    animation: flicker 0.8s ease-in-out infinite alternate;
+    filter: blur(1px);
+    box-shadow: 0 0 20px var(--fire), 0 0 40px rgba(255,107,26,0.4);
+  }
+  .flame::after {
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%; transform: translateX(-50%);
+    width: 10px; height: 30px;
+    background: linear-gradient(to top, var(--torch), #ffe066, transparent);
+    border-radius: 50% 50% 20% 20%;
+    filter: blur(0.5px);
+  }
+  .torch-body {
+    width: 10px; height: 80px; margin: 0 auto;
+    background: linear-gradient(to bottom, var(--wood), #5a3d24);
+    border-radius: 2px;
+  }
+  @keyframes flicker {
+    0%   { transform: scaleX(1)   scaleY(1)   rotate(-1deg); opacity: 0.95; }
+    100% { transform: scaleX(0.85) scaleY(1.05) rotate(1deg);  opacity: 1;    }
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--gold), var(--fire), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 18px rgba(212,168,67,0.45));
+  }
+  .header .subtitle {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--sand);
+    opacity: 0.7;
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Divider */
+  .divider {
+    width: 260px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 0 auto 20px;
+    opacity: 0.5;
+  }
+
+  /* Timer card */
+  .timer-card {
+    background: linear-gradient(160deg, rgba(26,16,8,0.97) 0%, rgba(43,28,15,0.95) 100%);
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 4px;
+    padding: 56px 72px;
+    text-align: center;
+    position: relative;
+    box-shadow:
+      0 0 60px rgba(255,107,26,0.08),
+      inset 0 1px 0 rgba(212,168,67,0.15);
+    min-width: 360px;
+  }
+  .timer-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(212,168,67,0.15), transparent 50%, rgba(212,168,67,0.1));
+    pointer-events: none;
+  }
+
+  /* Corner ornaments */
+  .corner {
+    position: absolute;
+    width: 18px; height: 18px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0.5;
+  }
+  .corner-tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+  /* The big clock */
+  .clock-display {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(5rem, 14vw, 9rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--gold), #fff5dc, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 24px rgba(212,168,67,0.6));
+    transition: color 0.3s;
+  }
+  .clock-display.urgent {
+    background: linear-gradient(135deg, var(--fire), #ff9500, var(--fire));
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 0 28px rgba(255,107,26,0.8));
+    animation: pulse-urgent 0.6s ease-in-out infinite alternate;
+  }
+  .clock-display.done {
+    background: linear-gradient(135deg, #888, #bbb, #888);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: none;
+  }
+  @keyframes pulse-urgent {
+    from { filter: drop-shadow(0 0 18px rgba(255,107,26,0.6)); }
+    to   { filter: drop-shadow(0 0 40px rgba(255,107,26,1)); }
+  }
+
+  /* Progress ring */
+  .ring-wrap {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto 32px;
+  }
+  .ring-wrap svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+  }
+  .ring-bg {
+    fill: none;
+    stroke: rgba(212,168,67,0.12);
+    stroke-width: 6;
+  }
+  .ring-progress {
+    fill: none;
+    stroke: url(#ringGrad);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .ring-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Label */
+  .timer-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-top: 18px;
+  }
+
+  /* Message */
+  .message {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--sand);
+    opacity: 0.65;
+    margin-top: 8px;
+    min-height: 1.5em;
+    transition: opacity 0.4s;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+  }
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 12px 32px;
+    border-radius: 2px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .btn-start {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .btn-start:hover {
+    background: rgba(212,168,67,0.12);
+    box-shadow: 0 0 20px rgba(212,168,67,0.25);
+  }
+  .btn-reset {
+    border-color: rgba(232,213,163,0.3);
+    color: rgba(232,213,163,0.5);
+  }
+  .btn-reset:hover {
+    border-color: rgba(232,213,163,0.6);
+    color: rgba(232,213,163,0.8);
+  }
+  .btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Finished overlay glow */
+  @keyframes finishPulse {
+    0%, 100% { box-shadow: 0 0 60px rgba(255,107,26,0.08), inset 0 1px 0 rgba(212,168,67,0.15); }
+    50% { box-shadow: 0 0 100px rgba(255,107,26,0.3), inset 0 1px 0 rgba(212,168,67,0.25); }
+  }
+  .timer-card.finished {
+    animation: finishPulse 1.2s ease-in-out infinite;
+  }
+
+  /* Torch position */
+  .torch { position: fixed; top: 0; width: 60px; z-index: 10; }
+  .torch-left { left: 20px; }
+  .torch-right { right: 20px; }
+</style>
+</head>
+<body>
+
+<!-- Torches -->
+<div class="torch torch-left">
+  <div class="flame"></div>
+  <div class="torch-body"></div>
+</div>
+<div class="torch torch-right">
+  <div class="flame"></div>
+  <div class="torch-body"></div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <h1>Memory Match</h1>
+  <div class="subtitle">The clock is ticking, survivor</div>
+</div>
+<div class="divider"></div>
+
+<!-- Timer card -->
+<div class="timer-card" id="timerCard">
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <div class="ring-wrap">
+    <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#d4a843"/>
+          <stop offset="50%"  stop-color="#ff6b1a"/>
+          <stop offset="100%" stop-color="#d4a843"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg" cx="110" cy="110" r="100"/>
+      <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"
+        stroke-dasharray="628.3"
+        stroke-dashoffset="0"
+      />
+    </svg>
+    <div class="ring-inner">
+      <div class="clock-display" id="clockDisplay">5:00</div>
+    </div>
+  </div>
+
+  <div class="timer-label">Time Remaining</div>
+  <div class="message" id="message">Ready when you are.</div>
+
+  <div class="btn-row">
+    <button class="btn btn-start" id="btnStart" onclick="toggleTimer()">Start</button>
+    <button class="btn btn-reset" id="btnReset" onclick="resetTimer()">Reset</button>
+  </div>
+</div>
+
+<script>
+  const TOTAL = 5 * 60; // 300 seconds
+  const CIRCUMFERENCE = 2 * Math.PI * 100; // 628.3
+
+  let remaining = TOTAL;
+  let running = false;
+  let interval = null;
+
+  const clockEl   = document.getElementById('clockDisplay');
+  const ringEl    = document.getElementById('ringProgress');
+  const btnStart  = document.getElementById('btnStart');
+  const btnReset  = document.getElementById('btnReset');
+  const messageEl = document.getElementById('message');
+  const cardEl    = document.getElementById('timerCard');
+
+  const messages = {
+    300: "Ready when you are.",
+    240: "Five minutes on the clock.",
+    180: "Stay focused, survivor.",
+    120: "Halfway there — keep going.",
+    60:  "One minute remaining!",
+    30:  "Thirty seconds — dig deep!",
+    10:  "Ten seconds!",
+    0:   "Time is up!"
+  };
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  function updateRing(s) {
+    const pct = s / TOTAL;
+    ringEl.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+  }
+
+  function updateMessage(s) {
+    const keys = Object.keys(messages).map(Number).sort((a,b) => b - a);
+    for (const k of keys) {
+      if (s <= k) {
+        messageEl.textContent = messages[k];
+        break;
+      }
+    }
+  }
+
+  function applyUrgency(s) {
+    clockEl.classList.toggle('urgent', s <= 30 && s > 0);
+    clockEl.classList.toggle('done',   s === 0);
+    cardEl.classList.toggle('finished', s === 0);
+    if (s <= 30 && s > 0) {
+      ringEl.style.stroke = 'var(--fire)';
+    } else if (s === 0) {
+      ringEl.style.stroke = '#555';
+    } else {
+      ringEl.style.stroke = 'url(#ringGrad)';
+    }
+  }
+
+  function render() {
+    clockEl.textContent = formatTime(remaining);
+    updateRing(remaining);
+    updateMessage(remaining);
+    applyUrgency(remaining);
+  }
+
+  function toggleTimer() {
+    if (remaining === 0) return;
+    if (running) {
+      // Pause
+      clearInterval(interval);
+      running = false;
+      btnStart.textContent = 'Resume';
+      messageEl.textContent = "Paused.";
+    } else {
+      // Start / resume
+      running = true;
+      btnStart.textContent = 'Pause';
+      if (remaining === TOTAL) messageEl.textContent = "The challenge has begun!";
+      interval = setInterval(() => {
+        remaining--;
+        render();
+        if (remaining === 0) {
+          clearInterval(interval);
+          running = false;
+          btnStart.disabled = true;
+          btnStart.textContent = 'Done';
+        }
+      }, 1000);
+    }
+  }
+
+  function resetTimer() {
+    clearInterval(interval);
+    running = false;
+    remaining = TOTAL;
+    btnStart.disabled = false;
+    btnStart.textContent = 'Start';
+    render();
+  }
+
+  // Initial render
+  render();
+</script>
+</body>
+</html>

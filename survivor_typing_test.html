@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survivor Typing Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire: #ff6b1a;
+    --gold: #d4a843;
+    --sand: #e8d5a3;
+    --dark: #1a1008;
+    --torch: #ff9500;
+    --wood: #8b5e3c;
+    --leaf: #2d5a27;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 10% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 50%, rgba(139,94,60,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(255,107,26,0.1) 0%, transparent 50%);
+  }
+
+  /* Torch flames */
+  .torch { position: fixed; top: 0; width: 60px; z-index: 10; }
+  .torch-left { left: 20px; }
+  .torch-right { right: 20px; }
+  .flame {
+    width: 24px; height: 60px; margin: 0 auto;
+    background: linear-gradient(to top, var(--fire), var(--torch), #ffe066, transparent);
+    border-radius: 50% 50% 20% 20%;
+    animation: flicker 0.8s ease-in-out infinite alternate;
+    filter: blur(1px);
+    box-shadow: 0 0 20px var(--fire), 0 0 40px rgba(255,107,26,0.4);
+  }
+  .flame::after {
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%; transform: translateX(-50%);
+    width: 10px; height: 30px;
+    background: linear-gradient(to top, var(--torch), #ffe066, transparent);
+    border-radius: 50%;
+    animation: flicker 0.5s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes flicker {
+    0% { transform: scaleX(1) scaleY(1) rotate(-2deg); opacity: 0.9; }
+    100% { transform: scaleX(0.85) scaleY(1.1) rotate(2deg); opacity: 1; }
+  }
+  .torch-pole { width: 8px; height: 120px; background: linear-gradient(to bottom, var(--wood), #5a3a1a); margin: 0 auto; border-radius: 2px; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 40px 100px 20px;
+    position: relative;
+  }
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212,168,67,0.5), 2px 2px 0 rgba(0,0,0,0.8);
+    letter-spacing: 4px;
+    line-height: 1.1;
+  }
+  .header .subtitle {
+    font-size: 1.1rem;
+    color: var(--sand);
+    opacity: 0.8;
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .divider {
+    width: 300px; height: 2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 16px auto;
+  }
+
+  /* Setup panel */
+  .setup-panel, .test-panel, .result-panel {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .card {
+    background: linear-gradient(135deg, rgba(139,94,60,0.25), rgba(26,16,8,0.8));
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 12px;
+    padding: 28px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,67,0.15);
+  }
+
+  label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  input[type="text"], input[type="number"], select {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(212,168,67,0.4);
+    border-radius: 6px;
+    color: var(--sand);
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 12px rgba(212,168,67,0.2); }
+  select option { background: #2a1a0a; }
+
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-fire {
+    background: linear-gradient(135deg, #cc4400, var(--fire), var(--torch));
+    color: white;
+    box-shadow: 0 4px 20px rgba(255,107,26,0.4);
+  }
+  .btn-fire:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,107,26,0.6); }
+  .btn-gold {
+    background: linear-gradient(135deg, #a07820, var(--gold), #e8c060);
+    color: var(--dark);
+    box-shadow: 0 4px 20px rgba(212,168,67,0.3);
+  }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(212,168,67,0.5); }
+  .btn-outline {
+    background: transparent;
+    color: var(--sand);
+    border: 1px solid rgba(212,168,67,0.4);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Countdown */
+  .countdown-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(10,5,0,0.92);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  .countdown-num {
+    font-family: 'Cinzel', serif;
+    font-size: 12rem;
+    font-weight: 900;
+    color: var(--fire);
+    text-shadow: 0 0 60px var(--fire), 0 0 120px rgba(255,107,26,0.4);
+    animation: popIn 0.5s ease-out;
+    line-height: 1;
+  }
+  .countdown-text {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: 6px;
+    margin-top: 16px;
+  }
+  @keyframes popIn {
+    0% { transform: scale(1.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Typing area */
+  .timer-bar-wrap {
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid rgba(212,168,67,0.2);
+  }
+  .timer-bar {
+    height: 100%;
+    background: linear-gradient(to right, var(--leaf), var(--gold), var(--fire));
+    transition: width 1s linear;
+    border-radius: 4px;
+  }
+
+  .timer-display {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--fire);
+    text-align: center;
+    text-shadow: 0 0 20px rgba(255,107,26,0.4);
+    margin-bottom: 10px;
+  }
+  .timer-display.urgent { color: #ff2200; animation: pulse 0.5s ease-in-out infinite alternate; }
+  @keyframes pulse { 0% { text-shadow: 0 0 20px rgba(255,34,0,0.4); } 100% { text-shadow: 0 0 40px rgba(255,34,0,0.8); } }
+
+  .passage-display {
+    font-size: 1.25rem;
+    line-height: 2;
+    letter-spacing: 0.02em;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(212,168,67,0.15);
+    user-select: none;
+    height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    word-break: break-word;
+    white-space: normal;
+  }
+  .char-correct { color: #7dd87d; }
+  .char-wrong { color: #ff4444; background: rgba(255,68,68,0.15); border-radius: 2px; }
+  .char-cursor { border-left: 2px solid var(--gold); animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { border-color: transparent; } }
+  .char-pending { color: rgba(232,213,163,0.45); }
+
+  .typing-input {
+    width: 100%; opacity: 0; position: absolute; pointer-events: none;
+  }
+  .typing-area-click {
+    cursor: text;
+    text-align: center;
+    padding: 10px;
+    font-style: italic;
+    color: rgba(232,213,163,0.5);
+    font-size: 0.95rem;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 0.78rem;
+    color: rgba(232,213,163,0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Results */
+  .result-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 24px;
+    text-shadow: 0 0 20px rgba(212,168,67,0.4);
+  }
+  .tribe-badge {
+    background: linear-gradient(135deg, rgba(212,168,67,0.2), rgba(212,168,67,0.05));
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 16px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .tribe-name { font-family: 'Cinzel', serif; font-size: 1.4rem; color: var(--gold); }
+  .wpm-big { font-family: 'Cinzel', serif; font-size: 4rem; font-weight: 900; color: var(--fire); line-height: 1; text-shadow: 0 0 30px rgba(255,107,26,0.5); }
+  .wpm-label { font-size: 0.9rem; color: var(--sand); opacity: 0.7; letter-spacing: 2px; }
+
+  /* Scoreboard */
+  .scoreboard { margin-top: 32px; }
+  .score-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(212,168,67,0.1);
+    transition: background 0.2s;
+  }
+  .score-row:hover { background: rgba(212,168,67,0.08); }
+  .score-rank { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold); width: 28px; text-align: center; }
+  .score-tribe { flex: 1; font-size: 1.05rem; }
+  .score-wpm { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--fire); font-weight: 700; }
+  .score-row.rank-1 { background: rgba(212,168,67,0.15); border-color: var(--gold); }
+  .score-row.rank-2 { background: rgba(180,180,180,0.1); border-color: rgba(180,180,180,0.4); }
+  .score-row.rank-3 { background: rgba(139,94,60,0.2); border-color: var(--wood); }
+
+  .hidden { display: none !important; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .row-2 { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(3,1fr); } }
+
+  .info-banner {
+    background: rgba(212,168,67,0.1);
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    color: var(--sand);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .info-banner .icon { color: var(--gold); font-size: 1.1rem; margin-top: 1px; flex-shrink: 0; }
+
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+
+  .scoreboard-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(212,168,67,0.2);
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(255,107,26,0.2);
+    border: 1px solid rgba(255,107,26,0.4);
+    color: var(--torch);
+    font-size: 0.75rem;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Tabs */
+  .tab-row { display: flex; gap: 0; margin-bottom: 24px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(212,168,67,0.25); }
+  .tab-btn {
+    flex: 1; padding: 10px; text-align: center;
+    font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 2px;
+    cursor: pointer; background: rgba(0,0,0,0.3); color: rgba(232,213,163,0.6);
+    border: none; transition: all 0.2s;
+  }
+  .tab-btn.active { background: rgba(212,168,67,0.15); color: var(--gold); }
+  .tab-btn:hover:not(.active) { background: rgba(212,168,67,0.08); }
+</style>
+</head>
+<body>
+
+<!-- Torches -->
+<div class="torch torch-left"><div class="flame"></div><div class="torch-pole"></div></div>
+<div class="torch torch-right"><div class="flame"></div><div class="torch-pole"></div></div>
+
+<!-- Countdown overlay -->
+<div class="countdown-overlay hidden" id="countdownOverlay">
+  <div class="countdown-num" id="countdownNum">3</div>
+  <div class="countdown-text">GET READY TO TYPE</div>
+</div>
+
+<div class="header">
+  <h1>⚔️ THE TYPING TRIAL ⚔️</h1>
+  <p class="subtitle">Challenge 1 · Survivor Offsite</p>
+  <div class="divider"></div>
+</div>
+
+<!-- === SETUP PANEL === -->
+<div class="setup-panel" id="setupPanel">
+  <div class="card">
+    <div class="info-banner">
+      <span class="icon">🏝️</span>
+      <span>Each tribe member takes the <strong>3-minute test</strong> — all scores are averaged for your tribe's ranking.</span>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('compete')">🎯 Compete</button>
+      <button class="tab-btn" onclick="switchTab('scoreboard')">🏆 Scoreboard</button>
+    </div>
+
+    <div id="tab-compete">
+      <div class="row-2">
+        <div>
+          <label>Your Tribe Name</label>
+          <select id="tribeSelect">
+            <option value="">— Select your tribe —</option>
+            <option>🥑 Avocado</option>
+            <option>🍌 Banana</option>
+            <option>🥕 Carrot</option>
+            <option>🌴 Dates</option>
+            <option>🫛 Edamame</option>
+            <option>🫐 Figs</option>
+            <option>🍇 Grape</option>
+            <option>🍈 Honeydew</option>
+            <option>🥬 Iceberg</option>
+            <option>🍈 Jackfruit</option>
+          </select>
+        </div>
+        <div>
+          <label>Competitor Name</label>
+          <input type="text" id="competitorName" placeholder="e.g. Alex">
+        </div>
+      </div>
+      <div style="text-align:center">
+        <button class="btn btn-fire" onclick="startCountdown()">🔥 BEGIN CHALLENGE</button>
+      </div>
+    </div>
+
+    <div id="tab-scoreboard" class="hidden">
+      <div id="scoreboardContent"><p style="text-align:center;opacity:0.5;font-style:italic;padding:20px">No scores yet — challenge hasn't started!</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- === TYPING PANEL === -->
+<div class="test-panel hidden" id="testPanel">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <span style="font-family:'Cinzel',serif;color:var(--gold);font-size:0.9rem;letter-spacing:2px" id="panelTribeName"></span>
+        <span style="opacity:0.5;margin:0 8px">·</span>
+        <span style="opacity:0.7;font-size:0.9rem" id="panelCompetitorName"></span>
+      </div>
+      <div class="timer-display" id="timerDisplay">5:00</div>
+    </div>
+
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val" id="statWpm">0</div><div class="stat-lbl">Adj. WPM</div></div>
+      <div class="stat-box"><div class="stat-val" id="statAcc">100%</div><div class="stat-lbl">Accuracy</div></div>
+      <div class="stat-box"><div class="stat-val" id="statChars">0</div><div class="stat-lbl">Chars</div></div>
+    </div>
+
+    <div class="passage-display" id="passageDisplay" onclick="focusInput()"></div>
+    <div class="typing-area-click" id="clickHint">Click here then start typing ↑</div>
+    <input type="text" class="typing-input" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+</div>
+
+<!-- === RESULT PANEL === -->
+<div class="result-panel hidden" id="resultPanel">
+  <div class="card">
+    <div class="result-title">🌴 CHALLENGE COMPLETE 🌴</div>
+
+    <div class="tribe-badge">
+      <div class="tribe-name" id="resultTribe"></div>
+      <div class="wpm-big" id="resultWpm"></div>
+      <div class="wpm-label">WORDS PER MINUTE</div>
+      <div style="margin-top:8px;opacity:0.7" id="resultAcc"></div>
+    </div>
+
+    <div id="avgSection" class="hidden" style="background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.3);border-radius:8px;padding:16px;text-align:center;margin-bottom:20px">
+      <div style="font-family:'Cinzel',serif;color:var(--sand);font-size:0.85rem;letter-spacing:2px;margin-bottom:6px">TRIBE AVERAGE</div>
+      <div style="font-family:'Cinzel',serif;font-size:3rem;font-weight:900;color:var(--gold)" id="avgWpm"></div>
+      <div style="font-size:0.85rem;opacity:0.6" id="avgBreakdown"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="backToSetup()">← Back to Setup</button>
+      <button class="btn btn-gold" onclick="switchToScoreboard()">🏆 View Scoreboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASSAGE = `Welcome to the island, where your tribe is your greatest strength and every challenge is a chance to rise together. Today is not about eliminating anyone. It is about proving what your team is made of and earning the advantages that could change everything in the challenges ahead. The tribe that finishes on top walks away with a powerful edge, while the tribes at the bottom will have to work even harder to overcome the disadvantages they carry into the next round. That is what makes every keystroke count right now. Think about the people on your team. They are counting on you to bring your best, to stay focused, and to keep pushing even when your fingers want to slow down. Every word you complete is a point of pride for your tribe. Every accurate keystroke is a small act of loyalty to the people sitting around you cheering you on. The advantages in this game are real and they matter, so the gap between first place and last place is worth fighting for with everything you have got. This island rewards preparation, composure, and heart. You have all three. The other tribes are giving it everything they have right now, and so are you. Stay locked in, trust your instincts, and let your hands do the talking. Your tribe believed in you enough to put you in this seat, so honor that by finishing every single word on this page with speed and precision. The best is yet to come for your team, and it starts with how you perform right here, right now. Type fast, type clean, and bring that advantage home for your tribe.`;
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyFjuHPjzLQS46R__tn3mqmiwyjCv7XvCA-J5Th6v0dzu0URso07xfOdbAmB7qf0JL1/exec';
+
+async function postScore(payload) {
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.error('Score post failed', e); }
+}
+
+async function fetchScores() {
+  try {
+    const res = await fetch(SHEET_URL + '?sheet=typing');
+    const data = await res.json();
+    return data;
+  } catch(e) { console.error('Score fetch failed', e); return []; }
+}
+
+let tribe = '', competitor = '', startTime, timerInterval, totalSeconds = 180;
+let currentPos = 0, mistakes = 0, typed = '';
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='compete')||(i===1&&tab==='scoreboard')));
+  document.getElementById('tab-compete').classList.toggle('hidden', tab !== 'compete');
+  document.getElementById('tab-scoreboard').classList.toggle('hidden', tab !== 'scoreboard');
+  if (tab === 'scoreboard') renderScoreboard('scoreboardContent');
+}
+
+function switchToScoreboard() {
+  document.getElementById('resultPanel').classList.add('hidden');
+  document.getElementById('setupPanel').classList.remove('hidden');
+  switchTab('scoreboard');
+}
+
+function startCountdown() {
+  tribe = document.getElementById('tribeSelect').value;
+  competitor = document.getElementById('competitorName').value.trim();
+  if (!tribe) { alert('Please select your tribe!'); return; }
+  if (!competitor) { alert('Please enter your name!'); return; }
+
+  const overlay = document.getElementById('countdownOverlay');
+  const numEl = document.getElementById('countdownNum');
+  overlay.classList.remove('hidden');
+  let count = 3;
+  numEl.textContent = count;
+
+  const iv = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(iv);
+      overlay.classList.add('hidden');
+      startTest();
+    } else {
+      numEl.style.animation = 'none';
+      numEl.offsetHeight;
+      numEl.style.animation = 'popIn 0.5s ease-out';
+      numEl.textContent = count;
+    }
+  }, 1000);
+}
+
+function startTest() {
+  document.getElementById('setupPanel').classList.add('hidden');
+  document.getElementById('testPanel').classList.remove('hidden');
+  document.getElementById('panelTribeName').textContent = tribe;
+  document.getElementById('panelCompetitorName').textContent = competitor;
+
+  currentPos = 0; mistakes = 0; typed = '';
+  renderPassage();
+  focusInput();
+  document.getElementById('typingInput').value = '';
+
+  startTime = Date.now();
+  let remaining = totalSeconds;
+  updateTimerDisplay(remaining);
+
+  timerInterval = setInterval(() => {
+    remaining--;
+    const pct = (remaining / totalSeconds) * 100;
+    document.getElementById('timerBar').style.width = pct + '%';
+    updateTimerDisplay(remaining);
+    if (remaining <= 30) document.getElementById('timerDisplay').classList.add('urgent');
+    updateStats();
+    if (remaining <= 0) { clearInterval(timerInterval); finishTest(); }
+  }, 1000);
+
+  document.getElementById('typingInput').addEventListener('input', onType);
+}
+
+function updateTimerDisplay(s) {
+  const m = Math.floor(s / 60), sec = s % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+function onType(e) {
+  const input = document.getElementById('typingInput');
+  const val = input.value;
+  typed = val;
+
+  const ch = val[val.length - 1];
+  if (ch === PASSAGE[currentPos]) {
+    currentPos++;
+  } else {
+    mistakes++;
+  }
+  input.value = '';
+
+  if (currentPos >= PASSAGE.length) {
+    clearInterval(timerInterval);
+    finishTest();
+    return;
+  }
+
+  renderPassage();
+  updateStats();
+}
+
+function renderPassage() {
+  const el = document.getElementById('passageDisplay');
+  const posInPassage = currentPos;
+  // Split into words to preserve natural wrapping
+  let html = '';
+  let charIndex = 0;
+  const words = PASSAGE.split(' ');
+  words.forEach((word, wi) => {
+    html += '<span style="display:inline-block">';
+    for (let ci = 0; ci < word.length; ci++) {
+      const ch = word[ci];
+      if (charIndex < posInPassage) html += `<span class="char-correct">${ch}</span>`;
+      else if (charIndex === posInPassage) html += `<span class="char-cursor char-pending">${ch}</span>`;
+      else html += `<span class="char-pending">${ch}</span>`;
+      charIndex++;
+    }
+    html += '</span>';
+    // space between words
+    if (wi < words.length - 1) {
+      if (charIndex < posInPassage) html += `<span class="char-correct"> </span>`;
+      else if (charIndex === posInPassage) html += `<span class="char-cursor char-pending"> </span>`;
+      else html += `<span class="char-pending"> </span>`;
+      charIndex++;
+    }
+  });
+  el.innerHTML = html;
+  const cursor = el.querySelector('.char-cursor');
+  if (cursor) cursor.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function updateStats() {
+  const elapsed = (Date.now() - startTime) / 60000;
+  const rawWpm = elapsed > 0 ? Math.round((currentPos / 5) / elapsed) : 0;
+  const totalTyped = currentPos + mistakes;
+  const acc = totalTyped > 0 ? Math.round((currentPos / totalTyped) * 100) : 100;
+  const adjWpm = Math.round(rawWpm * (acc / 100));
+  document.getElementById('statWpm').textContent = adjWpm;
+  document.getElementById('statAcc').textContent = acc + '%';
+  document.getElementById('statChars').textContent = currentPos;
+}
+
+function focusInput() {
+  document.getElementById('typingInput').focus();
+  document.getElementById('clickHint').style.display = 'none';
+}
+
+function finishTest() {
+  const elapsed = (Date.now() - startTime) / 60000;
+  const rawWpm = Math.max(0, Math.round((currentPos / 5) / elapsed));
+  const totalTyped = currentPos + mistakes;
+  const acc = totalTyped > 0 ? Math.round((currentPos / totalTyped) * 100) : 100;
+  const wpm = Math.round(rawWpm * (acc / 100));
+
+  document.getElementById('testPanel').classList.add('hidden');
+  document.getElementById('resultPanel').classList.remove('hidden');
+  document.getElementById('resultTribe').textContent = tribe;
+  document.getElementById('resultWpm').textContent = wpm;
+  document.getElementById('resultAcc').textContent = `Accuracy: ${acc}% · Raw: ${rawWpm} WPM · Adjusted: ${wpm} WPM`;
+
+  // Store score to Google Sheet
+  postScore({ sheet: 'typing', tribe, name: competitor, wpm, acc, time: new Date().toLocaleTimeString() });
+
+  // Show whole team average if tribe has 2+ scores
+  fetchScores().then(rows => {
+    const tribeRows = rows.filter(r => r.tribe === tribe);
+    if (tribeRows.length >= 2) {
+      const avg = Math.round(tribeRows.reduce((sum, r) => sum + +r.wpm, 0) / tribeRows.length);
+      document.getElementById('avgSection').classList.remove('hidden');
+      document.getElementById('avgWpm').textContent = avg;
+      document.getElementById('avgBreakdown').textContent = `${tribeRows.length} members submitted · Team average: ${avg} WPM`;
+    }
+  });
+}
+
+function backToSetup() {
+  document.getElementById('resultPanel').classList.add('hidden');
+  document.getElementById('setupPanel').classList.remove('hidden');
+  document.getElementById('resultPanel').querySelector('#avgSection').classList.add('hidden');
+}
+
+async function renderScoreboard(containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '<p style="text-align:center;opacity:0.5;font-style:italic;padding:20px">Loading scores...</p>';
+
+  const rows = await fetchScores();
+
+  // Group by tribe
+  const tribeMap = {};
+  rows.forEach(r => {
+    if (!tribeMap[r.tribe]) tribeMap[r.tribe] = [];
+    tribeMap[r.tribe].push(r);
+  });
+
+  const tribeAvgs = [];
+
+  for (const [t, entries] of Object.entries(tribeMap)) {
+    if (entries.length === 0) continue;
+    const avg = Math.round(entries.reduce((sum, e) => sum + +e.wpm, 0) / entries.length);
+    tribeAvgs.push({ tribe: t, avg, entries, complete: true });
+  }
+
+  tribeAvgs.sort((a, b) => b.avg - a.avg);
+
+  if (tribeAvgs.length === 0) {
+    container.innerHTML = '<p style="text-align:center;opacity:0.5;font-style:italic;padding:20px">No scores yet — challenge hasn\'t started!</p>';
+    return;
+  }
+
+  let html = `<div class="scoreboard-title">🔥 TRIBE RANKINGS 🔥</div>`;
+  const medals = ['🥇','🥈','🥉'];
+  tribeAvgs.forEach((t, i) => {
+    const medal = medals[i] || `${i+1}.`;
+    const topEntries = [...t.entries].sort((a,b) => +b.wpm - +a.wpm).slice(0,3);
+    html += `<div class="score-row ${i<3?'rank-'+(i+1):''}">
+      <span class="score-rank">${medal}</span>
+      <span class="score-tribe">${t.tribe}<br><small style="opacity:0.55;font-size:0.82rem">${t.entries.length} members · Top: ${topEntries.map(e=>e.name+' '+e.wpm+' WPM').join(' · ')}</small></span>
+      <span class="score-wpm">${t.avg}</span>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// Init
+renderPassage();
+</script>
+</body>
+</html>
